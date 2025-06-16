@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>奶蛇 vs 珊瑚蛇 驗證遊戲</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f8ff; text-align: center; padding: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 600px; margin: auto; }
+    .grid img { width: 100%; border: 4px solid transparent; cursor: pointer; border-radius: 8px; }
+    .grid img.selected { border-color: #2196f3; }
+    .button { padding: 10px 20px; font-size: 16px; margin-top: 20px; cursor: pointer; }
+    #message { font-size: 20px; color: green; margin-top: 20px; }
+    #final-screen { display: none; font-size: 28px; color: darkgreen; margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <h1>選出所有奶蛇</h1>
+  <div id="game">
+    <div class="grid" id="imageGrid"></div>
+    <button class="button" onclick="checkAnswers()">確認</button>
+    <div id="message"></div>
+  </div>
+  <div id="final-screen">🎉 通關成功！你真是奶蛇達人！🎉</div>
+
+  <script>
+    const milkSnakes = ["images/milksnake1.png", "images/milksnake2.png", "images/milksnake3.png", "images/milksnake4.png", "images/milksnake5.png", "images/milksnake6.png"];
+    const coralSnakes = ["images/coralsnake1.png", "images/coralsnake2.png", "images/coralsnake3.png", "images/coralsnake4.png", "images/coralsnake5.png", "images/coralsnake6.png"];
+
+    let round = 1;
+    const totalRounds = 3;
+    let currentImages = [];
+    let selected = new Set();
+
+    function shuffle(arr) {
+      return arr.sort(() => Math.random() - 0.5);
+    }
+
+    function loadRound() {
+      document.getElementById("message").textContent = "";
+      selected.clear();
+      const grid = document.getElementById("imageGrid");
+      grid.innerHTML = "";
+      const images = shuffle([...milkSnakes, ...coralSnakes]).slice(0, 9);
+      currentImages = images;
+      images.forEach((src, index) => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.onclick = () => toggleSelect(index, img);
+        grid.appendChild(img);
+      });
+    }
+
+    function toggleSelect(index, imgElement) {
+      if (selected.has(index)) {
+        selected.delete(index);
+        imgElement.classList.remove("selected");
+      } else {
+        selected.add(index);
+        imgElement.classList.add("selected");
+      }
+    }
+
+    function checkAnswers() {
+      let correctIndexes = currentImages.map((src, i) => milkSnakes.includes(src) ? i : null).filter(i => i !== null);
+      let selectedArray = Array.from(selected);
+      selectedArray.sort();
+      correctIndexes.sort();
+
+      const isCorrect = JSON.stringify(selectedArray) === JSON.stringify(correctIndexes);
+      if (isCorrect) {
+        if (round >= totalRounds) {
+          document.getElementById("game").style.display = "none";
+          document.getElementById("final-screen").style.display = "block";
+        } else {
+          round++;
+          document.getElementById("message").textContent = `✅ 正確！進入第 ${round} 輪`;
+          setTimeout(loadRound, 1000);
+        }
+      } else {
+        document.getElementById("message").textContent = "❌ 有誤，請再試一次！";
+      }
+    }
+
+    loadRound();
+  </script>
+</body>
+</html>
